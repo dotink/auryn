@@ -528,15 +528,17 @@ class Injector
 
         if (!$typeHint) {
             $obj = null;
-        } elseif ($reflParam->isDefaultValueAvailable()) {
+        } elseif ($reflParam->isDefaultValueAvailable() || $reflParam->isOptional()) {
             $normalizedName = $this->normalizeName($typeHint);
             // Injector has been told explicitly how to make this type
             if (isset($this->aliases[$normalizedName]) ||
                 isset($this->delegates[$normalizedName]) ||
                 isset($this->shares[$normalizedName])) {
                 $obj = $this->make($typeHint);
-            } else {
+            } elseif ($reflParam->isDefaultValueAvailable()) {
                 $obj = $reflParam->getDefaultValue();
+            } else {
+                $obj = NULL;
             }
         } else {
             $obj = $this->make($typeHint);
