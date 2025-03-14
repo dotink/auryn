@@ -75,7 +75,7 @@ class InjectorTest extends TestCase
     public function testMakeInstanceReturnsSharedInstanceIfAvailable(): void
     {
         $injector = new Injector();
-        $injector->define(RequiresInterface::class, array('dep' => DepImplementation::class));
+        $injector->define(RequiresInterface::class, ['dep' => DepImplementation::class]);
         $injector->share(RequiresInterface::class);
         $injected = $injector->make(RequiresInterface::class);
 
@@ -102,16 +102,16 @@ class InjectorTest extends TestCase
     public function testMakeInstanceUsesCustomDefinitionIfSpecified(): void
     {
         $injector = new Injector();
-        $injector->define(TestNeedsDep::class, array('testDep'=>TestDependency::class));
-        $injected = $injector->make(TestNeedsDep::class, array('testDep'=>TestDependency2::class));
+        $injector->define(TestNeedsDep::class, ['testDep'=>TestDependency::class]);
+        $injected = $injector->make(TestNeedsDep::class, ['testDep'=>TestDependency2::class]);
         $this->assertEquals('testVal2', $injected->testDep->testProp);
     }
 
     public function testMakeInstanceCustomDefinitionOverridesExistingDefinitions(): void
     {
         $injector = new Injector();
-        $injector->define(InjectorTestChildClass::class, array(':arg1'=>'First argument', ':arg2'=>'Second argument'));
-        $injected = $injector->make(InjectorTestChildClass::class, array(':arg1'=>'Override'));
+        $injector->define(InjectorTestChildClass::class, [':arg1'=>'First argument', ':arg2'=>'Second argument']);
+        $injected = $injector->make(InjectorTestChildClass::class, [':arg1'=>'Override']);
         $this->assertEquals('Override', $injected->arg1);
         $this->assertEquals('Second argument', $injected->arg2);
     }
@@ -127,12 +127,12 @@ class InjectorTest extends TestCase
     public function testMakeInstanceUsesReflectionForUnknownParamsInMultiBuildWithDeps(): void
     {
         $injector = new Injector();
-        $obj = $injector->make(TestMultiDepsWithCtor::class, array('val1'=>TestDependency::class));
+        $obj = $injector->make(TestMultiDepsWithCtor::class, ['val1'=>TestDependency::class]);
         $this->assertInstanceOf(TestMultiDepsWithCtor::class, $obj);
 
         $obj = $injector->make(
             NoTypehintNoDefaultConstructorClass::class,
-            array('val1'=>TestDependency::class)
+            ['val1'=>TestDependency::class]
         );
         $this->assertInstanceOf(NoTypehintNoDefaultConstructorClass::class, $obj);
         $this->assertNull($obj->testParam);
@@ -152,10 +152,10 @@ class InjectorTest extends TestCase
         $injector = new Injector();
         $obj = $injector->make(
             NoTypehintNoDefaultConstructorVariadicClass::class,
-            array('val1'=>TestDependency::class)
+            ['val1'=>TestDependency::class]
         );
         $this->assertInstanceOf(NoTypehintNoDefaultConstructorVariadicClass::class, $obj);
-        $this->assertEquals(array(), $obj->testParam);
+        $this->assertEquals([], $obj->testParam);
     }
 
     /**
@@ -172,7 +172,7 @@ class InjectorTest extends TestCase
         $injector = new Injector();
         $obj = $injector->make(
             TypehintNoDefaultConstructorVariadicClass::class,
-            array('arg'=>TestDependency::class)
+            ['arg'=>TestDependency::class]
         );
         $this->assertInstanceOf(TypehintNoDefaultConstructorVariadicClass::class, $obj);
         $this->assertIsArray($obj->testParam);
@@ -234,15 +234,15 @@ class InjectorTest extends TestCase
     public function testMakeInstanceInjectsRawParametersDirectly(): void
     {
         $injector = new Injector();
-        $injector->define(InjectorTestRawCtorParams::class, array(
+        $injector->define(InjectorTestRawCtorParams::class, [
             ':string' => 'string',
             ':obj' => new \StdClass(),
             ':int' => 42,
-            ':array' => array(),
+            ':array' => [],
             ':float' => 9.3,
             ':bool' => true,
             ':null' => null,
-        ));
+        ]);
 
         $obj = $injector->make(InjectorTestRawCtorParams::class);
         $this->assertTrue(is_string($obj->string));
@@ -333,7 +333,7 @@ class InjectorTest extends TestCase
     public function testDefineAssignsPassedDefinition(): void
     {
         $injector = new Injector();
-        $definition = array('dep' => DepImplementation::class);
+        $definition = ['dep' => DepImplementation::class];
         $injector->define(RequiresInterface::class, $definition);
         $this->assertInstanceOf(RequiresInterface::class, $injector->make(RequiresInterface::class));
     }
@@ -372,11 +372,11 @@ class InjectorTest extends TestCase
 
     public static function provideInvalidDelegates(): array
     {
-        return array(
-            array(new \StdClass()),
-            array(42),
-            array(true)
-        );
+        return [
+            [new \StdClass()],
+            [42],
+            [true]
+        ];
     }
 
     /**
@@ -401,7 +401,7 @@ class InjectorTest extends TestCase
     public function testDelegateInstantiatesCallableClassArray(): void
     {
         $injector = new Injector();
-        $injector->delegate(MadeByDelegate::class, array(CallableDelegateClassTest::class, '__invoke'));
+        $injector->delegate(MadeByDelegate::class, [CallableDelegateClassTest::class, '__invoke']);
         $this->assertInstanceof(MadeByDelegate::class, $injector->make(MadeByDelegate::class));
     }
 
@@ -421,7 +421,7 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
         try {
-            $injector->delegate(DelegatableInterface::class, array('stdClass', 'methodWhichDoesNotExist'));
+            $injector->delegate(DelegatableInterface::class, ['stdClass', 'methodWhichDoesNotExist']);
             $this->fail("Delegation was supposed to fail.");
         } catch (InjectorException $ie) {
             $this->assertStringContainsString('stdClass', $ie->getMessage());
@@ -441,154 +441,150 @@ class InjectorTest extends TestCase
 
     public static function provideExecutionExpectations(): array
     {
-        $return = array();
+        $return = [];
 
         // 0 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(ExecuteClassNoDeps::class, 'execute');
-        $args = array();
+        $toInvoke = [ExecuteClassNoDeps::class, 'execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 1 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(new ExecuteClassNoDeps(), 'execute');
-        $args = array();
+        $toInvoke = [new ExecuteClassNoDeps(), 'execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 2 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(ExecuteClassDeps::class, 'execute');
-        $args = array();
+        $toInvoke = [ExecuteClassDeps::class, 'execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 3 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(new ExecuteClassDeps(new TestDependency()), 'execute');
-        $args = array();
+        $toInvoke = [new ExecuteClassDeps(new TestDependency()), 'execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 4 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(ExecuteClassDepsWithMethodDeps::class, 'execute');
-        $args = array(':arg' => 9382);
+        $toInvoke = [ExecuteClassDepsWithMethodDeps::class, 'execute'];
+        $args = [':arg' => 9382];
         $expectedResult = 9382;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 5 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(ExecuteClassStaticMethod::class, 'execute');
-        $args = array();
+        $toInvoke = [ExecuteClassStaticMethod::class, 'execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 6 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(new ExecuteClassStaticMethod(), 'execute');
-        $args = array();
+        $toInvoke = [new ExecuteClassStaticMethod(), 'execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 7 -------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\ExecuteClassStaticMethod::execute';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 8 -------------------------------------------------------------------------------------->
 
-        $toInvoke = array(ExecuteClassRelativeStaticMethod::class, 'parent::execute');
-        $args = array();
+        $toInvoke = [ExecuteClassRelativeStaticMethod::class, 'parent::execute'];
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 9 -------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\testExecuteFunction';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 10 ------------------------------------------------------------------------------------->
 
-        $toInvoke = function () {
-            return 42;
-        };
-        $args = array();
+        $toInvoke = (fn() => 42);
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 11 ------------------------------------------------------------------------------------->
 
         $toInvoke = new ExecuteClassInvokable();
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 12 ------------------------------------------------------------------------------------->
 
         $toInvoke = ExecuteClassInvokable::class;
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 13 ------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\ExecuteClassNoDeps::execute';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 14 ------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\ExecuteClassDeps::execute';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 15 ------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\ExecuteClassStaticMethod::execute';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 16 ------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\ExecuteClassRelativeStaticMethod::parent::execute';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 17 ------------------------------------------------------------------------------------->
 
         $toInvoke = 'Auryn\testExecuteFunctionWithArg';
-        $args = array();
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
         // 18 ------------------------------------------------------------------------------------->
 
-        $toInvoke = function () {
-            return 42;
-        };
-        $args = array();
+        $toInvoke = (fn() => 42);
+        $args = [];
         $expectedResult = 42;
-        $return[] = array($toInvoke, $args, $expectedResult);
+        $return[] = [$toInvoke, $args, $expectedResult];
 
 
         if (PHP_VERSION_ID > 50400) {
             // 19 ------------------------------------------------------------------------------------->
 
             $object = new ReturnsCallable('new value');
-            $args = array();
+            $args = [];
             $toInvoke = $object->getCallable();
             $expectedResult = 'new value';
-            $return[] = array($toInvoke, $args, $expectedResult);
+            $return[] = [$toInvoke, $args, $expectedResult];
         }
         // x -------------------------------------------------------------------------------------->
 
@@ -729,14 +725,14 @@ class InjectorTest extends TestCase
 
     public static function provideCyclicDependencies(): array
     {
-        return array(
-            RecursiveClassA::class => array(RecursiveClassA::class),
-            RecursiveClassB::class => array(RecursiveClassB::class),
-            RecursiveClassC::class => array(RecursiveClassC::class),
-            RecursiveClass1::class => array(RecursiveClass1::class),
-            RecursiveClass2::class => array(RecursiveClass2::class),
-            DependsOnCyclic::class => array(DependsOnCyclic::class),
-        );
+        return [
+            RecursiveClassA::class => [RecursiveClassA::class],
+            RecursiveClassB::class => [RecursiveClassB::class],
+            RecursiveClassC::class => [RecursiveClassC::class],
+            RecursiveClass1::class => [RecursiveClass1::class],
+            RecursiveClass2::class => [RecursiveClass2::class],
+            DependsOnCyclic::class => [DependsOnCyclic::class],
+        ];
     }
 
     /**
@@ -889,7 +885,7 @@ class InjectorTest extends TestCase
 
         $injector = new Injector();
         $object = new \StdClass();
-        $injector->buildExecutable(array($object, 'nonExistentMethod'));
+        $injector->buildExecutable([$object, 'nonExistentMethod']);
     }
 
     public function testMakeExecutableFailsOnNonExistentStaticMethod(): void
@@ -899,7 +895,7 @@ class InjectorTest extends TestCase
         $this->expectExceptionCode(Injector::E_INVOKABLE);
 
         $injector = new Injector();
-        $injector->buildExecutable(array('StdClass', 'nonExistentMethod'));
+        $injector->buildExecutable(['StdClass', 'nonExistentMethod']);
     }
 
     public function testMakeExecutableFailsOnClassWithoutInvoke(): void
@@ -935,7 +931,7 @@ class InjectorTest extends TestCase
     public function testDefineWithBackslashAndMakeWithoutBackslash(): void
     {
         $injector = new Injector();
-        $injector->define(SimpleNoTypehintClass::class, array(':arg' => 'tested'));
+        $injector->define(SimpleNoTypehintClass::class, [':arg' => 'tested']);
         $testClass = $injector->make(SimpleNoTypehintClass::class);
         $this->assertEquals('tested', $testClass->testParam);
     }
@@ -955,7 +951,7 @@ class InjectorTest extends TestCase
     public function testInstanceMutate(): void
     {
         $injector = new Injector();
-        $injector->prepare('\StdClass', function ($obj, $injector) {
+        $injector->prepare('\StdClass', function ($obj, $injector): void {
             $obj->testval = 42;
         });
         $obj = $injector->make('StdClass');
@@ -966,7 +962,7 @@ class InjectorTest extends TestCase
     public function testInterfaceMutate(): void
     {
         $injector = new Injector();
-        $injector->prepare(SomeInterface::class, function ($obj, $injector) {
+        $injector->prepare(SomeInterface::class, function ($obj, $injector): void {
             $obj->testProp = 42;
         });
         $obj = $injector->make(PreparesImplementationTest::class);
@@ -988,7 +984,7 @@ class InjectorTest extends TestCase
 
         $injector = new Injector();
         $injector->share(DependencyWithDefinedParam::class);
-        $injector->make(RequiresDependencyWithDefinedParam::class, array(':foo' => 5));
+        $injector->make(RequiresDependencyWithDefinedParam::class, [':foo' => 5]);
     }
 
     public function testDelegationFunction(): void
@@ -1016,7 +1012,7 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
         $injector->alias(BaseExecutableClass::class, ExtendsExecutableClass::class);
-        $result = $injector->execute(array(BaseExecutableClass::class, 'foo'));
+        $result = $injector->execute([BaseExecutableClass::class, 'foo']);
         $this->assertEquals('This is the ExtendsExecutableClass', $result);
     }
 
@@ -1024,7 +1020,7 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
         $injector->alias(BaseExecutableClass::class, ExtendsExecutableClass::class);
-        $result = $injector->execute(array(BaseExecutableClass::class, 'bar'));
+        $result = $injector->execute([BaseExecutableClass::class, 'bar']);
         $this->assertEquals('This is the ExtendsExecutableClass', $result);
     }
 
@@ -1056,12 +1052,10 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
 
-        $fn = function () {
-            return new \Auryn\ConcreteExexcuteTest();
-        };
+        $fn = (fn() => new \Auryn\ConcreteExexcuteTest());
 
         $injector->delegate(AbstractExecuteTest::class, $fn);
-        $result = $injector->execute(array(AbstractExecuteTest::class, 'process'));
+        $result = $injector->execute([AbstractExecuteTest::class, 'process']);
 
         $this->assertEquals('Concrete', $result);
     }
@@ -1094,13 +1088,13 @@ class InjectorTest extends TestCase
         $injector = new Injector();
 
         // Injector::I_BINDINGS
-        $injector->define(DependencyWithDefinedParam::class, array(':arg' => 42));
+        $injector->define(DependencyWithDefinedParam::class, [':arg' => 42]);
 
         // Injector::I_DELEGATES
         $injector->delegate(MadeByDelegate::class, CallableDelegateClassTest::class);
 
         // Injector::I_PREPARES
-        $injector->prepare(MadeByDelegate::class, function ($c) {
+        $injector->prepare(MadeByDelegate::class, function ($c): void {
         });
 
         // Injector::I_ALIASES
@@ -1122,9 +1116,7 @@ class InjectorTest extends TestCase
         $this->expectExceptionMessage("Making auryn\someclassname did not result in an object, instead result is of type 'NULL'");
         $this->expectExceptionCode(Injector::E_MAKING_FAILED);
 
-        $delegate = function () {
-            return null;
-        };
+        $delegate = (fn() => null);
         $injector = new Injector();
         $injector->delegate(SomeClassName::class, $delegate);
         $injector->make(SomeClassName::class);
@@ -1136,9 +1128,7 @@ class InjectorTest extends TestCase
         $this->expectExceptionMessage("Making auryn\someclassname did not result in an object, instead result is of type 'string'");
         $this->expectExceptionCode(Injector::E_MAKING_FAILED);
 
-        $delegate = function () {
-            return 'ThisIsNotAClass';
-        };
+        $delegate = (fn() => 'ThisIsNotAClass');
         $injector = new Injector();
         $injector->delegate(SomeClassName::class, $delegate);
         $injector->make(SomeClassName::class);
@@ -1158,9 +1148,7 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
         $expected = new SomeImplementation(); // <-- implements SomeInterface
-        $injector->prepare(SomeInterface::class, function ($impl) use ($expected) {
-            return $expected;
-        });
+        $injector->prepare(SomeInterface::class, fn($impl) => $expected);
         $actual = $injector->make(SomeImplementation::class);
         $this->assertSame($expected, $actual);
     }
@@ -1169,9 +1157,7 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
         $expected = new SomeImplementation(); // <-- implements SomeInterface
-        $injector->prepare(SomeImplementation::class, function ($impl) use ($expected) {
-            return $expected;
-        });
+        $injector->prepare(SomeImplementation::class, fn($impl) => $expected);
         $actual = $injector->make(SomeImplementation::class);
         $this->assertSame($expected, $actual);
     }
@@ -1180,8 +1166,8 @@ class InjectorTest extends TestCase
     {
         $injector = new Injector();
         try {
-            $injector->define(ParentWithConstructor::class, array(':foo' => 'parent'));
-            $injector->define(ChildWithoutConstructor::class, array(':foo' => 'child'));
+            $injector->define(ParentWithConstructor::class, [':foo' => 'parent']);
+            $injector->define(ChildWithoutConstructor::class, [':foo' => 'child']);
 
             $injector->share(ParentWithConstructor::class);
             $injector->share(ChildWithoutConstructor::class);
@@ -1204,19 +1190,15 @@ class InjectorTest extends TestCase
         $this->expectExceptionCode(Injector::E_UNDEFINED_PARAM);
 
         $injector = new Injector();
-        $injector->define(ParentWithConstructor::class, array(':foo' => 'parent'));
+        $injector->define(ParentWithConstructor::class, [':foo' => 'parent']);
         $injector->make(ChildWithoutConstructor::class);
     }
 
     public function testInstanceClosureDelegates(): void
     {
         $injector = new Injector();
-        $injector->delegate(DelegatingInstanceA::class, function (DelegateA $d) {
-            return new \Auryn\DelegatingInstanceA($d);
-        });
-        $injector->delegate(DelegatingInstanceB::class, function (DelegateB $d) {
-            return new \Auryn\DelegatingInstanceB($d);
-        });
+        $injector->delegate(DelegatingInstanceA::class, fn(DelegateA $d) => new \Auryn\DelegatingInstanceA($d));
+        $injector->delegate(DelegatingInstanceB::class, fn(DelegateB $d) => new \Auryn\DelegatingInstanceB($d));
 
         $a = $injector->make(DelegatingInstanceA::class);
         $b = $injector->make(DelegatingInstanceB::class);

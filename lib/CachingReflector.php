@@ -62,7 +62,7 @@ class CachingReflector implements Reflector
             $paramCacheKey = self::CACHE_KEY_CLASSES . "{$lowClass}.{$lowMethod}.param-{$lowParam}";
         } else {
             $lowFunc = strtolower($function->name);
-            $paramCacheKey = (strpos($lowFunc, '{closure}') === false)
+            $paramCacheKey = (!str_contains($lowFunc, '{closure}'))
                 ? self::CACHE_KEY_FUNCS . ".{$lowFunc}.param-{$lowParam}"
                 : null;
         }

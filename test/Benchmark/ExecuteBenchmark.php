@@ -22,7 +22,7 @@ class ExecuteBenchmark extends AthleticEvent
      */
     public function native_invoke_closure()
     {
-        call_user_func(function () {
+        call_user_func(function (): void {
             // call-target, intenionally left empty
         });
     }
@@ -32,7 +32,7 @@ class ExecuteBenchmark extends AthleticEvent
      */
     public function native_invoke_method()
     {
-        call_user_func(array($this->noop, 'noop'));
+        call_user_func([$this->noop, 'noop']);
     }
 
     /**
@@ -40,7 +40,7 @@ class ExecuteBenchmark extends AthleticEvent
      */
     public function invoke_closure()
     {
-        $this->injector->execute(function () {
+        $this->injector->execute(function (): void {
             // call-target, intenionally left empty
         });
     }
@@ -50,7 +50,7 @@ class ExecuteBenchmark extends AthleticEvent
      */
     public function invoke_method()
     {
-        $this->injector->execute(array($this->noop, 'noop'));
+        $this->injector->execute([$this->noop, 'noop']);
     }
 
     /**
@@ -58,6 +58,6 @@ class ExecuteBenchmark extends AthleticEvent
      */
     public function invoke_with_named_parameters()
     {
-        $this->injector->execute(array($this->noop, 'namedNoop'), array(':name' => 'foo'));
+        $this->injector->execute([$this->noop, 'namedNoop'], [':name' => 'foo']);
     }
 }

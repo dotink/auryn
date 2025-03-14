@@ -404,7 +404,7 @@ class ExecuteClassDepsWithMethodDeps
     }
     public function execute(TestDependency $dep, $arg = null)
     {
-        return isset($arg) ? $arg : 42;
+        return $arg ?? 42;
     }
 }
 
@@ -664,9 +664,7 @@ class ReturnsCallable
 
     public function getCallable()
     {
-        $callable = function () {
-            return $this->value;
-        };
+        $callable = (fn() => $this->value);
 
         return $callable;
     }
@@ -678,9 +676,7 @@ class DelegateClosureInGlobalScope
 
 function getDelegateClosureInGlobalScope()
 {
-    return function () {
-        return new DelegateClosureInGlobalScope();
-    };
+    return fn() => new DelegateClosureInGlobalScope();
 }
 
 class CloneTest
